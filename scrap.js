@@ -4,9 +4,6 @@ const axios = require('axios')
 const fs = require('fs')
 const {JSDOM} = require('jsdom')
 
-const pageNumber = process.argv[2]; // e.g. node scrap.js 1
-const starterLink = pageNumber === 1 ? "https://www.digikala.com/treasure-hunt/products" : `https://www.digikala.com/treasure-hunt/products/?pageno=${pageNumber}&sortby=4`
-
 const haunterProductSelector = "body main#main div#content div.container div.o-page__row.o-page__row--listing div.o-page__content div article div ul.c-listing__items.js-plp-products-list"
 const productImageSelector = 'body main#main div#content div.o-page.js-product-page.c-product-page div article section.c-product__gallery div.c-gallery ul.c-gallery__items.js-album-usage-ga'
 
@@ -69,10 +66,9 @@ async function qualifyImageLink(imageUrl) {
     return newImageUrl
 }
 
-async function saveImage(imageUrl){
-    console.log('INFO: imageDownloading ', imageCounter);
-    let imageName = `p-${pageNumber}-image${imageCounter}.jpg`
-    imageCounter = imageCounter + 1;
+async function downloadImage(imageUrl, pageNumber, imageNumber){
+    console.log('INFO: imageDownloading ', imageNumber);
+    let imageName = `p-${pageNumber}-image${imageNumber}.jpg`
 
     const dir = path.resolve(__dirname, 'images', imageName)
 
@@ -97,12 +93,21 @@ async function saveImage(imageUrl){
 }
 
 async function start(){
-    const productLinks = await retrieveProductLinks(starterLink)
-    for (let i = 0; i<productLinks.length; i++){
-        const imageLinks = await retrieveProductImagesLink(productLinks[i])
-        for (let j = 0; j<imageLinks.length; j++){
-            await saveImage(imageLinks[j])
-        }
-    }
+	const fromPage = process.argv[2]
+	const toPage = process.argv[3] // inclusive
+
+	for(let pageNumber=fromPage; pageNumber<=toPage; pageNumber++){
+		let imageNumber = 0
+		const starterLink = pageNumber === 1 ? "https://www.digikala.com/treasure-hunt/products" : `https://www.digikala.com/treasure-hunt/products/?pageno=${pageNumber}&sortby=4`
+		const productLinks = await retrieveProductLinks(starterLink)
+		for (let i = 0; i<productLinks.length; i++){
+			const imageLinks = await retrieveProductImagesLink(productLinks[i])
+			for (let j = 0; j<imageLinks.length; j++){
+				imageNumber = imageNumber + 1
+				await downloadImage(imageLinks[j], pageNumber, imageNumber)
+			}
+		}
+	}
+	console.log('requested pages crawled.')
 }
 start()
