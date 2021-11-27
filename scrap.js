@@ -96,7 +96,7 @@ async function start(){
 	const fromPage = process.argv[2]
 	const toPage = process.argv[3] // inclusive
 
-	for(let pageNumber=fromPage; pageNumber<=toPage; pageNumber++){
+	for(let pageNumber = Number(fromPage); pageNumber <= Number(toPage); pageNumber++){
 		let imageNumber = 0
 		const starterLink = pageNumber === 1 ? "https://www.digikala.com/treasure-hunt/products" : `https://www.digikala.com/treasure-hunt/products/?pageno=${pageNumber}&sortby=4`
 		const productLinks = await retrieveProductLinks(starterLink)
